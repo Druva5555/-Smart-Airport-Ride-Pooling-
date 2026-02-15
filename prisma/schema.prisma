@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  RIDER
+  DRIVER
+  ADMIN
+}
+
+enum RideStatus {
+  PENDING
+  ACCEPTED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  phone     String   @unique
+  name      String
+  password  String
+  role      Role     @default(RIDER)
+  rating    Float    @default(5.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cabs           Cab[]
+  rideRequests   RideRequest[]
+  ridePassengers RidePassenger[]
+}
+
+model Cab {
+  id           String   @id @default(uuid())
+  driverId     String
+  driver       User     @relation(fields: [driverId], references: [id])
+  licensePlate String   @unique
+  model        String
+  color        String
+  latitude     Float?
+  longitude    Float?
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rides RideGroup[]
+
+  @@index([latitude, longitude])
+  @@index([isAvailable])
+}
+
+model RideRequest {
+  id              String     @id @default(uuid())
+  riderId         String
+  rider           User       @relation(fields: [riderId], references: [id])
+  pickupLat       Float
+  pickupLng       Float
+  dropoffLat      Float
+  dropoffLng      Float
+  pickupAddress   String
+  dropoffAddress  String
+  status          RideStatus @default(PENDING)
+  requestedAt     DateTime   @default(now())
+
+  passengers RidePassenger[]
+}
+
+model RideGroup {
+  id        String     @id @default(uuid())
+  cabId     String
+  cab       Cab        @relation(fields: [cabId], references: [id])
+  status    RideStatus @default(ONGOING)
+  startTime DateTime   @default(now())
+  endTime   DateTime?
+  totalFare Float?
+
+  passengers RidePassenger[]
+
+  @@index([status])
+}
+
+model RidePassenger {
+  id            String        @id @default(uuid())
+  rideGroupId   String
+  rideGroup     RideGroup     @relation(fields: [rideGroupId], references: [id])
+  rideRequestId String
+  rideRequest   RideRequest   @relation(fields: [rideRequestId], references: [id])
+  riderId       String
+  rider         User          @relation(fields: [riderId], references: [id])
+  fare          Float
+  paymentStatus PaymentStatus @default(PENDING)
+  joinedAt      DateTime      @default(now())
+}
+
+model Pricing {
+  id             String   @id @default(uuid())
+  baseFare       Float
+  perKmRate      Float
+  perMinuteRate  Float
+  surgeMultiplier Float   @default(1.0)
+  effectiveFrom  DateTime @default(now())
+}

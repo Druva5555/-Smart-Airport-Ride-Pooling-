@@ -7,7 +7,24 @@ services:
       - '3000:3000'
     environment:
       - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smart_airport_ride_pooling?schema=public
+    depends_on:
+      - db
     volumes:
       - .:/app
       - /app/node_modules
     command: npm run dev
+
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=smart_airport_ride_pooling
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
