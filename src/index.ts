@@ -17,6 +17,11 @@ app.use(express.json());
 // Global Rate Limiter
 app.use(apiLimiter);
 
+// Swagger Documentation
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Routes
 app.use('/ride', rideRoutes);
 
