@@ -11,15 +11,15 @@ graph LR
     
     subgraph "Synchronous Layer"
         API -->|Validate & Rate Limit| Middleware
-        Middleware -->|Enqueue Job| Queue[Redis Queue (BullMQ)]
+        Middleware -->|Enqueue Job| Queue["Redis Queue (BullMQ)"]
         API -->|202 Accepted| User
     end
 
     subgraph "Asynchronous Layer"
         Queue -->|Process Job| Worker[Worker Service]
         Worker -->|Find Match| Matcher[Matching Engine]
-        matcher -->|Lock| Redis[Redis (Locks/Cache)]
-        Matcher -->|Persist| DB[(PostgreSQL)]
+        matcher -->|Lock| Redis["Redis (Locks/Cache)"]
+        Matcher -->|Persist| DB[("PostgreSQL")]
     end
 ```
 
